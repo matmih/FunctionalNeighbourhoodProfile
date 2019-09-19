@@ -1,4 +1,4 @@
-# FunctionalNeighbourhoodProfile
+# Functional Neighbourhood Profile
 
 This repository contains codes required to perform analyses presented in the manuscript:
 
