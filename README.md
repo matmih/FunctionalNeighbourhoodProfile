@@ -2,7 +2,7 @@
 
 This repository contains codes required to perform analyses presented in the manuscript:
 
-## Patterns of diverse gene functions in genomic neighborhoods predict gene function and phenotype
+** Patterns of diverse gene functions in genomic neighborhoods predict gene function and phenotype
 
 Authors: Matej Mihelčić, Tomislav Šmuc and Fran Supek
 
