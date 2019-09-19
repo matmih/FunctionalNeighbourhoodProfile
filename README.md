@@ -16,7 +16,7 @@ This work was performed at:
 3) Department of Mathematics, University of Zagreb, Zagreb, Croatia
 4) School of Computing, University of Eastern Finland, Kuopio, Finland
 
-#Data 
+## Data 
 
 The main required data can be obtained from the following sources:
 
