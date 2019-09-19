@@ -26,7 +26,7 @@ The main required data can be obtained from the following sources:
 
 Other data sources are specified in the manuscript or can be obtained by request from the authors. 
 
-##Contact information: 
+## Contact information: 
 
 Matej Mihelčić: matmih1@gmail.com 
 
