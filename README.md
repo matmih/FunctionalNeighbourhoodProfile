@@ -15,3 +15,20 @@ This work was performed at:
 2) Institute for Research in Biomedicine, Barcelona, Spain
 3) Department of Mathematics, University of Zagreb, Zagreb, Croatia
 4) School of Computing, University of Eastern Finland, Kuopio, Finland
+
+#Data 
+
+The main required data can be obtained from the following sources:
+
+1) Genomes NCBI (https://www.ncbi.nlm.nih.gov/genome)
+2) Ensemble genomes (http://ensemblgenomes.org/)
+3) Gene ontology (http://geneontology.org/)
+
+Other data sources are specified in the manuscript or can be obtained by request from the authors. 
+
+##Contact information: 
+
+Matej Mihelčić: matmih1@gmail.com 
+
+Contact information of other authors can be seen in the manuscript.
+
