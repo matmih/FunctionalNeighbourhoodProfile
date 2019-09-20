@@ -225,7 +225,47 @@ public class CreateFungyDatasetNew {
       }
       
       if(Algorithm == 6){
-         
+           //create metazoa dataset without synthenic blocks
+          HashMap<String,Integer> taxIDMapSinteny = new HashMap<>();
+          File inputTaxS = new File("taxIDsSB.txt");
+          
+          try{
+              Path p = Paths.get(inputTaxS.getAbsolutePath());
+              BufferedReader rt = Files.newBufferedReader(p,StandardCharsets.UTF_8);
+              
+              String line = "";
+              
+              while((line = rt.readLine())!=null){
+                  
+                  String tmp[] = line.split("\t");
+                  taxIDMapSinteny.put(tmp[1].trim(), Integer.parseInt(tmp[0].trim()));
+                  
+              }
+              
+              rt.close();
+              
+          }
+          catch(IOException e){
+              e.printStackTrace();
+          }
+          
+          System.out.println("TID map size: "+taxIDMapSinteny.keySet().size());
+          
+          //call the function to create sintenic block structure and create the function to eliminate the required blocks of genome
+          File inputTaxFolder = new File("/home/mmihelcic/GOdatasetGenerator/Eukariots/MetazoaFiles/AllFiles");
+          String ext1[] = {"txt"};
+          SynthenicBlocks blocks = new SynthenicBlocks();
+          blocks.readBlocks(inputTaxFolder, ext1, taxIDMapSinteny);
+          System.out.println("Block size: "+blocks.blocks.keySet().size()+" "+blocks.blocks.size());
+          Iterator<Integer> it = blocks.blocks.keySet().iterator();
+          
+          while(it.hasNext()){
+              int tid = it.next();
+              System.out.println("taxid: "+tid+" Num Blocks: "+blocks.blocks.get(tid).size());
+          }
+          //eliminate blocks from genome and create dataset
+         alg.createBaselineOrganismsNewNoSintheny(taxIDFilePath, ensembleTIDsFile, blocks , rmf, extensions, true, k, oggomap, geneOGMap, ogOrgCount, ogOccCount, map, headerInput, outputSinteny, isTrain, false, taxIDTranslationMap, 1, OrganismGroup);
+    
       }
       if(Algorithm == 7){
       

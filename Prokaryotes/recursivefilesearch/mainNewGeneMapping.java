@@ -262,6 +262,7 @@ public class mainNewGeneMapping {
            // mgs.computeAccrition(taxIDFile, accretionFile, predictionFile, extensions, recursive, k, cgmap, geneOGMap, AccrtetionFileOutput, intTrain, false);
         }
         else if(createDatasets == 7){
+			   mgs.createBaselineOrganismsNoOperons(taxIDFile, extensions, recursive, k, cgmap,geneOGMap, BaselineLinuxOoutputFileNoOperons, intTrain,false);
         }
         else if (createDatasets == 8){//create pid2gene mapping used to compute co-expressions
             HashMap<String, HashSet<String>> pid2Gene = new HashMap<>();

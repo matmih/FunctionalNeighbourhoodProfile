@@ -2575,11 +2575,8 @@ public class MultiGenomeSet {
        try{
          Collection files = FileUtils.listFiles(root, extensions, recursive);
          TrainTest tt=new TrainTest();
-        // COGbaselinefeatures cbf=new COGbaselinefeatures();
          HashSet<Integer> usedTIDs=new HashSet<>();
-         //COGSparsefeatures csf=new COGSparsefeatures();
          int numGenomes=0;
-        // tt.createSparseTrainHeader(output, cgmap, isTrain,1);
             for (Iterator iterator = files.iterator(); iterator.hasNext();) {
                 File input = (File) iterator.next();
                 System.out.println("File = " + input.getAbsolutePath());
@@ -2595,7 +2592,6 @@ public class MultiGenomeSet {
 
                   COGSimilarity1 sim=new COGSimilarity1();
                 sim.computeSpatialNeighboors(cg,cgmap,geneOGMap, k);
-                //COGfeatures cf=new COGfeatures();
                 if(sim.numCOGs==0){
                     System.out.println("Nema COG-ova s funkcijom u susjedstvu!");
                     continue;
@@ -2604,11 +2600,8 @@ public class MultiGenomeSet {
                  String fileName=input.getName().substring(0,input.getName().length()-4);
                 int taxid=taxIDMap.get(fileName);
                 if(usedTIDs.contains(taxid)){
-                    //csf.imputeSparseFeatures(cf,cgmap, tidOccurence.get(taxid));
-                    //cbf.createFeaturesOrganism(sim, cgmap);
                 }
                 else{
-                //cbf.createFeatures(sim, cgmap);
                  occ.createOccurence(cg, cgmap);
                  usedTIDs.add(taxid);
                  System.out.println("Broj obradenih organizama: "+usedTIDs.size());
@@ -2616,26 +2609,189 @@ public class MultiGenomeSet {
                 
                 numGenomes++;
                 System.out.println("Obradeno dokumenata: "+numGenomes);
-                //csf.createSparseFeatures(cf, cgmap, numGenomes);
                 cg.cogs.clear();
                 cg.ancogs.clear();
                 sim.neighbours.clear();
-               // cf.COGfeaturesmap.clear();
-                // tt.appendRowsToSet(output, cgmap, cf, isTrain);
             }
-            //cbf.normalize();
-            //tt.createTrainHeader(output, cgmap, isTrain);
-            //tt.appendBaselineRowsToSet(output, cgmap, cbf, isTrain);
             occ.writeToFile(output);
-         //tt.createSparseTrainHeader(output, cgmap, isTrain, numGenomes);
-        // tt.appendSparseRowsToSet(output, cgmap, csf, isTrain, numGenomes);
-         //csf.COGsparsefeaturesmap.clear();
-            //cbf.COGbaselinefeaturesmap.clear();
             occ.occurence.clear();
         } catch (Exception e) {
             e.printStackTrace();
         }
        
    }
+   
+    void createBaselineOrganismsNoOperons(String taxIDFilePath,String[] extensions, boolean recursive, int k,COGGOMap cgmap,GeneOGMapping geneOGMap, String output,int isTrain, boolean randomize){
+    
+          BufferedReader reader;
+       File taxIDFile=new File(taxIDFilePath);
+         HashMap<String,Integer> taxIDMap=new HashMap<>();
+         HashMap<Integer,Integer> tidOccurence=new HashMap<>();
+         try {
+             Path path =Paths.get(taxIDFile.getAbsolutePath());
+             reader = Files.newBufferedReader(path,ENCODING);
+             String line = null;
+      while ((line = reader.readLine()) != null) {
+          String[] tok=line.split(" ");
+          String name=tok[0].substring(0,tok[0].length()-4);
+          int tid=Integer.parseInt(tok[1]);
+          taxIDMap.put(name, tid);
+      }
+   
+      reader.close();
+      
+         }
+         catch(Exception e){e.printStackTrace();}
+          
+       try{
+         Collection files = FileUtils.listFiles(root, extensions, recursive);
+         TrainTest tt=new TrainTest();
+         COGbaselinefeatures cbf=new COGbaselinefeatures();
+         HashSet<Integer> usedTIDs=new HashSet<>();
+         Random rand = new Random();
+         
+         int numGenomes=0, numFiles=0;
+            for (Iterator iterator = files.iterator(); iterator.hasNext();) {
+                 numFiles++;
+                 System.out.println("Processing file: "+numFiles);
+                File input = (File) iterator.next();
+                System.out.println("File = " + input.getAbsolutePath());
+                 System.out.println("File = " + input.getName());
+
+                  COG cg=new COG();
+                  //modify to remove operons
+                  cg.findCogsNoOperons(input,1,geneOGMap); //change to 0 to get COGs from file
+                  
+                  if(randomize==true)
+                      cg.randomize(rand);
+                  
+                  if(cg.ancogs.size()<k+1){
+                      System.out.println("Nema dovoljno anotiranih COG-ova");
+                      continue;
+                  }
+
+                  COGSimilarity1 sim=new COGSimilarity1();
+
+                sim.computeSpatialNeighboors(cg,cgmap,geneOGMap,k);
+                if(sim.numCOGs==0){
+                    System.out.println("Nema COG-ova s funkcijom u susjedstvu!");
+                    continue;
+                }
+                
+                String fileName=input.getName().substring(0,input.getName().length()-4);
+                int taxid=taxIDMap.get(fileName);
+                if(usedTIDs.contains(taxid)){
+                    cbf.createFeaturesOrganism(sim, cgmap,geneOGMap);
+                }
+                else{
+                cbf.createFeatures(sim, cgmap,geneOGMap);
+                 usedTIDs.add(taxid);
+                 System.out.println("Broj obradenih organizama: "+usedTIDs.size());
+                }
+                
+                numGenomes++;
+                System.out.println("Obradeno dokumenata: "+numGenomes);
+                cg.cogs.clear();
+                cg.ancogs.clear();
+                sim.neighbours.clear();
+            }
+            cbf.normalize();
+            tt.createTrainHeader(output, cgmap, isTrain);
+            tt.appendBaselineRowsToSet(output, cgmap, cbf, isTrain);
+            cbf.COGbaselinefeaturesmap.clear();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }   
+   }
+         
+      
+       void createBaselineOrganismsOSpecific(String taxIDFilePath,String[] extensions, boolean recursive, int k,COGGOMap cgmap,GeneOGMapping geneOGMap, int taxID ,String output,int isTrain, boolean randomize){
+    
+          BufferedReader reader;
+       File taxIDFile=new File(taxIDFilePath);
+       //maps file name with the organism taxID
+         HashMap<String,Integer> taxIDMap=new HashMap<>();
+         //maps taxID with the first organism it occurs
+         HashMap<Integer,Integer> tidOccurence=new HashMap<>();
+         try {
+             Path path =Paths.get(taxIDFile.getAbsolutePath());
+             reader = Files.newBufferedReader(path,ENCODING);
+             String line = null;
+      while ((line = reader.readLine()) != null) {
+          String[] tok=line.split(" ");
+          String name=tok[0].substring(0,tok[0].length()-4);
+          int tid=Integer.parseInt(tok[1]);
+          taxIDMap.put(name, tid);
+      }
+   
+      reader.close();
+      
+         }
+         catch(Exception e){e.printStackTrace();}
+          
+       try{
+         Collection files = FileUtils.listFiles(root, extensions, recursive);
+         TrainTest tt=new TrainTest();
+         COGbaselinefeatures cbf=new COGbaselinefeatures();
+         HashSet<Integer> usedTIDs=new HashSet<>();
+         Random rand = new Random();
+         
+         int numGenomes=0, numFiles=0;
+            for (Iterator iterator = files.iterator(); iterator.hasNext();) {
+                 numFiles++;
+                 System.out.println("Processing file: "+numFiles);
+                File input = (File) iterator.next();
+                System.out.println("File = " + input.getAbsolutePath());
+                 System.out.println("File = " + input.getName());
+
+                 String fileName=input.getName().substring(0,input.getName().length()-4);
+                int taxid=taxIDMap.get(fileName);
+                
+                if(taxid!=taxID)
+                    continue;
+                 
+                  COG cg=new COG();
+                  cg.findCogs(input,1,geneOGMap); //change to 0 to get COGs from file
+                  
+                  if(randomize==true)
+                      cg.randomize(rand);
+                  
+                  if(cg.ancogs.size()<k+1){
+                      System.out.println("Nema dovoljno anotiranih COG-ova");
+                      continue;
+                  }
+
+                  COGSimilarity1 sim=new COGSimilarity1();
+                sim.computeSpatialNeighboors(cg,cgmap,geneOGMap,k);
+                if(sim.numCOGs==0){
+                    System.out.println("Nema COG-ova s funkcijom u susjedstvu!");
+                    continue;
+                }
+                
+                
+                if(usedTIDs.contains(taxid)){
+                    cbf.createFeaturesOrganism(sim, cgmap,geneOGMap);
+                }
+                else{
+                cbf.createFeatures(sim, cgmap,geneOGMap);
+                 usedTIDs.add(taxid);
+                 System.out.println("Broj obradenih organizama: "+usedTIDs.size());
+                }
+                
+                numGenomes++;
+                System.out.println("Obradeno dokumenata: "+numGenomes);
+                cg.cogs.clear();
+                cg.ancogs.clear();
+                sim.neighbours.clear();
+            }
+            cbf.normalize();
+            tt.createTrainHeader(output, cgmap, isTrain);
+            tt.appendBaselineRowsToSet(output, cgmap, cbf, isTrain);
+            cbf.COGbaselinefeaturesmap.clear();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }   
+   }
+      
         
    }

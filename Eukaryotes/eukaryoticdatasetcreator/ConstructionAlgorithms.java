@@ -4305,5 +4305,459 @@ public static double calculateStandardDeviation(double[] sd){
         } catch (Exception e) {
             e.printStackTrace();
         }   
-   }  
+   }
+
+	void createBaselineOrganismsNewNoSintheny(String taxIDFilePath, File ensembleTIDsFile, SynthenicBlocks blocks, CreateReducedMappingsFile rmf,String[] extensions, boolean recursive, int k,OGGOMapping cgmap,HashMap<String,HashSet<Pair<String,String>>> geneOGMap, HashMap<String,HashSet<Integer>> ogOrgCount, HashMap<String,HashMap<Integer,Integer>> ogOccCount, Mappings map, File headerInput, String output,int isTrain, boolean randomize, HashMap<Integer,Integer> taxTranslation, int useNC, int OrgType){
+    //OrgType - 0-fungy, 1-metazoa
+           HashSet<Integer> okTaxes = new HashSet<>();
+          BufferedReader reader;
+       File taxIDFile=new File(taxIDFilePath);
+       //maps file name with the organism taxID
+         HashMap<String,Integer> taxIDMap=new HashMap<>();
+         HashSet<Integer> allTax=new HashSet();
+         HashMap<String,Integer> taxFNMapping = new HashMap<>();
+         //maps taxID with the first organism it occurs
+         HashMap<Integer,Integer> tidOccurence=new HashMap<>();
+         try {
+             Path path =Paths.get(taxIDFile.getAbsolutePath());
+             reader = Files.newBufferedReader(path,ENCODING);
+             String line = null;
+      while ((line = reader.readLine()) != null){
+          String[] tok=line.split(" ");
+          String name=tok[0].substring(0,tok[0].length()-4);
+          int tid=Integer.parseInt(tok[1]);
+          taxIDMap.put(name, tid);
+      }
+      
+      reader.close();
+         }
+         catch(Exception e){e.printStackTrace();}
+         
+         if(OrgType ==0){
+          okTaxes.add(578458); okTaxes.add(222929); okTaxes.add(426418); okTaxes.add(4950);
+         okTaxes.add(663331); okTaxes.add(644223); okTaxes.add(322104); okTaxes.add(554155);
+         okTaxes.add(431241); okTaxes.add(665079); okTaxes.add(426428); okTaxes.add(341663);
+         okTaxes.add(578455); okTaxes.add(4956); okTaxes.add(367110); okTaxes.add(214684);
+         okTaxes.add(294746); okTaxes.add(294747); okTaxes.add(1064592); okTaxes.add(559305);
+         okTaxes.add(402676); okTaxes.add(336963); okTaxes.add(246410); okTaxes.add(573826);
+         okTaxes.add(227321); okTaxes.add(379508); okTaxes.add(5061); okTaxes.add(1071381);
+         okTaxes.add(242507); okTaxes.add(559295); okTaxes.add(1071378); okTaxes.add(306902);
+         okTaxes.add(306901); okTaxes.add(764097); okTaxes.add(876142); okTaxes.add(931890);
+         okTaxes.add(413071); okTaxes.add(535722); okTaxes.add(907965); okTaxes.add(526221);
+         okTaxes.add(367775); okTaxes.add(284811); okTaxes.add(284812); okTaxes.add(573729);
+         okTaxes.add(510516); okTaxes.add(660122); okTaxes.add(985895); okTaxes.add(334819);
+         okTaxes.add(240176);//fungy
+         }
+         if(OrgType==1){
+         okTaxes.add(30608); okTaxes.add(30611);  okTaxes.add(8128); okTaxes.add(6334); //metazoa only
+         okTaxes.add(7897); okTaxes.add(13616);  okTaxes.add(46245); okTaxes.add(9601);
+         okTaxes.add(7070); okTaxes.add(7668);  okTaxes.add(9361); okTaxes.add(9483);
+         okTaxes.add(7757); okTaxes.add(9785);  okTaxes.add(6183); okTaxes.add(13735);
+         okTaxes.add(9606); okTaxes.add(59729);  okTaxes.add(9371); okTaxes.add(10020);
+         okTaxes.add(9913); okTaxes.add(59463);  okTaxes.add(9615); okTaxes.add(7260);
+         okTaxes.add(9258); okTaxes.add(6945);  okTaxes.add(13037); okTaxes.add(9739);
+         okTaxes.add(10141); okTaxes.add(7245);  okTaxes.add(7244); okTaxes.add(10116);
+         okTaxes.add(9031); okTaxes.add(8049);  okTaxes.add(51511); okTaxes.add(9646);
+         okTaxes.add(7091); okTaxes.add(9986);  okTaxes.add(121224); okTaxes.add(7227);
+         okTaxes.add(9685); okTaxes.add(10228);  okTaxes.add(34740); okTaxes.add(281687);
+         okTaxes.add(7217); okTaxes.add(69293);  okTaxes.add(7222); okTaxes.add(10090);
+         okTaxes.add(9669); okTaxes.add(31234);  okTaxes.add(8083); okTaxes.add(9544);
+         okTaxes.add(9305); okTaxes.add(37347);  okTaxes.add(45351); okTaxes.add(99883);
+         okTaxes.add(8090); okTaxes.add(7955);  okTaxes.add(31033); okTaxes.add(9598);
+         okTaxes.add(9595); okTaxes.add(8364);  okTaxes.add(61853); okTaxes.add(6238);
+         okTaxes.add(7425); okTaxes.add(6239);  okTaxes.add(9796); okTaxes.add(28377);
+         okTaxes.add(7176); okTaxes.add(132908);  okTaxes.add(9103); okTaxes.add(54126);
+         okTaxes.add(7165); okTaxes.add(9823);  okTaxes.add(7029); okTaxes.add(7719);
+         okTaxes.add(43179); okTaxes.add(135651);  okTaxes.add(7159); okTaxes.add(9813);
+         }
+         
+          
+       try{
+         Collection files = FileUtils.listFiles(root, extensions, recursive);
+         DatasetWriter tt=new DatasetWriter();
+         OGFeatures cbf=new OGFeatures();
+         HashSet<Integer> usedTIDs=new HashSet<>();
+         Random rand = new Random();
+         HashSet<Integer> OKTIDs=new HashSet<>();
+         //COGSparsefeatures csf=new COGSparsefeatures();
+         int numGenomes=0, numFiles=0;
+         
+          HashMap<Integer, HashSet<String>> organismOGs = new HashMap<>();
+
+          HashSet<Integer> ensembleTaxs = new HashSet();
+              HashSet<Integer> eggnogTaxs = new HashSet();
+              
+             BufferedReader reader1;
+              
+              try {
+                     Path path =Paths.get(ensembleTIDsFile.getAbsolutePath());
+                     reader1 = Files.newBufferedReader(path,ENCODING);
+                      String line = null;
+                     
+                      while ((line = reader1.readLine()) != null) {
+                            
+                           ensembleTaxs.add(Integer.parseInt(line.trim()));
+                    }
+
+      reader1.close();
+       }
+         catch(Exception e){e.printStackTrace();}
+              
+              Iterator<String> it= rmf.ProteinNOG.keySet().iterator();
+              
+              while(it.hasNext()){
+                  
+                  HashSet<Pair<String,String>> ns = rmf.ProteinNOG.get(it.next());
+                  
+                  if(ns.size()==0)
+                     continue;
+
+                 for(Pair<String,String> nss:ns){
+                     eggnogTaxs.add(Integer.parseInt(nss.getValue1()));
+                 }
+              }
+              
+              HashSet<Integer> usedSpecies = new HashSet();
+         
+              System.out.println("eggnogTaxs: "+eggnogTaxs.size());
+              System.out.println("ensembleTaxs: "+ensembleTaxs.size());
+         
+            for (Iterator iterator = files.iterator(); iterator.hasNext();){
+
+                 numFiles++;
+                 System.out.println("Processing file: "+numFiles);
+                File input = (File) iterator.next();
+                System.out.println("File = " + input.getAbsolutePath());
+                 System.out.println("File = " + input.getName());
+                 
+                 if(input.getAbsolutePath().contains(".nonchromosomal.") && useNC==0)
+                     continue;
+
+                 String fileName=input.getName().substring(0,input.getName().length()-4);
+                int taxid=taxIDMap.get(fileName);
+                int found=0;                
+                
+                if(okTaxes.contains(taxid)) found=1; //metazoa  + fungy
+                    else continue;
+            
+                System.out.println("found: "+found);
+                
+                if(found==0 || (usedSpecies.contains(taxTranslation.get(taxid)) && !usedTIDs.contains(taxid)))
+                    continue;
+                         
+                    taxFNMapping.put(fileName, taxid);
+                  
+                 if(!input.getAbsolutePath().contains(".nonchromosomal.")){   
+                  Gene cg=new Gene();
+                  if(OrgType==0)
+                     cg.findCogsNewNoSyntheni(input,blocks,taxTranslation,taxid,geneOGMap,map);//fungy
+                  else if(OrgType ==1)
+                       cg.findCogsNewMetazoaNoSyntheni(input,blocks,taxTranslation,taxid,geneOGMap,map,taxid);
+                  
+                  System.out.println("gene and anotated gene size!");
+                  System.out.println(cg.genes.size());
+                  System.out.println(cg.anotGen.size());
+                  
+                  if(randomize==true)
+                      cg.randomize(rand);
+                  
+                  if(cg.anotGen.size()<k+1){
+                      System.out.println("Nema dovoljno anotiranih COG-ova");
+                      System.out.println(cg.anotGen.size());
+                      continue;
+                  }
+
+                  GeneNeighbours sim=new GeneNeighbours();
+                sim.computeSpatialNeighboors(cg,k);
+                
+                System.out.println("NN: "+sim.neighbours.keySet().size());
+
+                if(sim.numCOGs==0){
+                    System.out.println("Nema COG-ova s funkcijom u susjedstvu!");
+                    continue;
+                }
+                System.out.println("Neighbours computed!");
+                if(taxIDMap.containsKey(input.getName().substring(0,input.getName().length()-4)))
+                 allTax.add(taxIDMap.get(input.getName().substring(0,input.getName().length()-4)));
+                    
+                    OKTIDs.add(taxid);
+                if(usedTIDs.contains(taxid)){
+                    cbf.createFeaturesOrganismNewCount(sim, cgmap,geneOGMap,map,taxTranslation,organismOGs,taxid);
+                }
+                else{
+                cbf.createFeaturesNewCount(sim, cgmap,geneOGMap,map,taxTranslation,organismOGs,taxid);
+                 usedTIDs.add(taxid);
+                 System.out.println("Broj obradenih organizama: "+usedTIDs.size());
+                }
+                
+                System.out.println("Features computed!");
+                
+                numGenomes++;
+                System.out.println("Obradeno dokumenata: "+numGenomes);
+                System.out.println("Broj OK organizama: "+OKTIDs.size());
+                 
+                 for(int gi=0;gi<cg.genes.size();gi++){
+                      
+                      if(!geneOGMap.containsKey(cg.genes.get(gi).getValue2()))
+                          continue;
+                      
+                      HashSet<Pair<String,String>> ogs = geneOGMap.get(cg.genes.get(gi).getValue2());
+                      
+                      HashSet<String> ogsg = new HashSet<>();
+                      
+                      for(Pair<String,String> p:ogs)
+                          if(Integer.parseInt(p.getValue1())==taxid || taxTranslation.get(Integer.parseInt(p.getValue1())).equals(taxTranslation.get(taxid)))
+                                 ogsg.add(p.getValue0());
+                      
+                     for(String ogsOCC:ogsg){ 
+                      if(ogOrgCount.containsKey(ogsOCC/*cg.genes.get(gi).getValue2()*/)){
+                          ogOrgCount.get(ogsOCC/*cg.genes.get(gi).getValue2()*/).add(taxTranslation.get(taxid));
+                          
+                          if(!ogOccCount.containsKey(ogsOCC/*cg.genes.get(gi).getValue2()*/)){
+                              continue;                             
+                          }
+                              
+                        
+                          HashMap<Integer,Integer> taxOcc = ogOccCount.get(ogsOCC/*cg.genes.get(gi).getValue2()*/);
+                          
+                          if(!taxOcc.containsKey(taxTranslation.get(taxid)))
+                              taxOcc.put(taxTranslation.get(taxid), 0);
+                          
+                          int occ = taxOcc.get(taxTranslation.get(taxid));
+                          occ++;
+                          System.out.println("occ: "+occ);
+                          taxOcc.put(taxTranslation.get(taxid), occ);
+                          ogOccCount.put(ogsOCC/*cg.genes.get(gi).getValue2()*/, taxOcc);
+                      }
+                    }
+                  }
+                 
+                cg.genes.clear();
+                cg.anotGen.clear();
+                sim.neighbours.clear();
+                 }
+                 else{
+                  
+                   Gene cg=new Gene();
+                   int maxs=-1;
+                   if(OrgType==0)
+                        maxs=cg.findCogsNewnonCHNoSyntheni(input,blocks,taxTranslation,taxid,geneOGMap,map);//fungy
+                   if(OrgType==1)
+                       maxs=cg.findCogsNewnonCHMetazoaNoSyntheni(input,blocks,taxTranslation,taxid,geneOGMap,map,taxid);
+                  
+                  System.out.println("gene and anotated gene size!");
+                  System.out.println(cg.genes.size());
+                  System.out.println(cg.anotGen.size());
+                  
+                  if(randomize==true)
+                      cg.randomize(rand);
+                  
+                  if(cg.anotGen.size()<k+1){
+                      System.out.println("Nema dovoljno anotiranih COG-ova .nonchromosomal");
+                      System.out.println(cg.anotGen.size());
+                      continue;
+                  }
+                  
+                  if(maxs<k+1){
+                      System.out.println("Nema dovoljno anotiranih COG-ova u contigu");
+                      continue;
+                  }
+                  
+                  if(cg.genesContig.size()>1000 && OrgType==0){
+                      System.out.println("To many contigs!");
+                      continue;
+                  }
+                  
+                  ArrayList<GeneNeighbours> nSims = new ArrayList<>();
+                  
+                  for(int ccs = 0; ccs < cg.genesContig.size(); ccs++){
+                      cg.genes = cg.genesContig.get(ccs);
+                     GeneNeighbours sim1=new GeneNeighbours();
+                     sim1.computeSpatialNeighboors(cg, k);
+                     nSims.add(sim1);
+                  }
+
+                  int exist  = 0;
+                  for(int ccs = 0; ccs < nSims.size();ccs++)
+                      if(nSims.get(ccs).numCOGs>0)
+                          exist=1;
+                  
+                  if(exist==0)
+                      continue;
+                  
+                System.out.println("Neighbours computed!");
+                if(taxIDMap.containsKey(input.getName().substring(0,input.getName().length()-4)))
+                 allTax.add(taxIDMap.get(input.getName().substring(0,input.getName().length()-4)));
+                    
+                    OKTIDs.add(taxid);
+                if(usedTIDs.contains(taxid)){
+                    cbf.createFeaturesOrganismNewCountnonCH(nSims, cgmap,geneOGMap,map,taxTranslation,organismOGs,taxid);
+                    System.out.println("Success .nonchromosomal");
+                }
+                else{
+                cbf.createFeaturesNewCountNonCH(nSims, cgmap,geneOGMap,map,taxTranslation,organismOGs,taxid);
+                 usedTIDs.add(taxid);
+                 System.out.println("Broj obradenih organizama: "+usedTIDs.size());
+                 System.out.println("Success .nonchromosomal");
+                }
+                
+                System.out.println("Features computed!");
+                
+                numGenomes++;
+                System.out.println("Obradeno dokumenata: "+numGenomes);
+                System.out.println("Broj OK organizama: "+OKTIDs.size());
+                
+               for(int gg=0;gg<cg.genesContig.size();gg++){ 
+                   cg.genes = cg.genesContig.get(gg);
+                 for(int gi=0;gi<cg.genes.size();gi++){
+                      
+                      if(!geneOGMap.containsKey(cg.genes.get(gi).getValue2()))
+                          continue;
+                      
+                      HashSet<Pair<String,String>> ogs = geneOGMap.get(cg.genes.get(gi).getValue2());
+                      
+                      HashSet<String> ogsg = new HashSet<>();
+                      
+                      for(Pair<String,String> p:ogs)
+                          if(Integer.parseInt(p.getValue1())==taxid || taxTranslation.get(Integer.parseInt(p.getValue1())).equals(taxTranslation.get(taxid)))
+                                 ogsg.add(p.getValue0());
+                      
+                     for(String ogsOCC:ogsg){ 
+                      if(ogOrgCount.containsKey(ogsOCC/*cg.genes.get(gi).getValue2()*/)){
+                          ogOrgCount.get(ogsOCC/*cg.genes.get(gi).getValue2()*/).add(taxTranslation.get(taxid));
+                          
+                          if(!ogOccCount.containsKey(ogsOCC/*cg.genes.get(gi).getValue2()*/)){
+                             // continue;
+                               HashMap<Integer,Integer> taxOcc = ogOccCount.get(ogsOCC/*cg.genes.get(gi).getValue2()*/);
+                          
+                          if(!taxOcc.containsKey(taxTranslation.get(taxid)))
+                              taxOcc.put(taxTranslation.get(taxid), 0);
+                              ogOccCount.put(ogsOCC, taxOcc);
+                          }
+                              
+                        
+                          HashMap<Integer,Integer> taxOcc = ogOccCount.get(ogsOCC/*cg.genes.get(gi).getValue2()*/);
+                          
+                          if(!taxOcc.containsKey(taxTranslation.get(taxid)))
+                              taxOcc.put(taxTranslation.get(taxid), 0);
+                          
+                          int occ = taxOcc.get(taxTranslation.get(taxid));
+                          occ++;
+                          System.out.println("occ: "+occ);
+                          taxOcc.put(taxTranslation.get(taxid), occ);
+                          ogOccCount.put(ogsOCC/*cg.genes.get(gi).getValue2()*/, taxOcc);
+                      }
+                    }
+                  }
+               }
+                 
+                 
+                cg.genes.clear();
+                cg.anotGen.clear();
+                nSims.clear();
+                 }
+                usedSpecies.add(taxTranslation.get(taxid));
+            }
+            cbf.normalize();
+            
+            FileWriter fw = new FileWriter("NOGCountnonCH.txt"); //the true will append the new data
+
+        it = ogOccCount.keySet().iterator();
+        
+        while(it.hasNext()){
+            String og= it.next();
+            ArrayList<Integer> ocOg = new ArrayList();
+            
+            HashMap<Integer,Integer> taxOcc = ogOccCount.get(og);
+            
+            Iterator<Integer> taxit = taxOcc.keySet().iterator();
+            
+            while(taxit.hasNext()){
+                int ti = taxit.next();
+                if(taxOcc.get(ti)>0)
+                ocOg.add(taxOcc.get(ti));
+            }
+            
+            
+            double tmp[] = new double[ocOg.size()];
+            
+            for(int kt=0;kt<ocOg.size();kt++)
+                tmp[kt]=ocOg.get(kt);
+            
+            double oc = calculateMean(tmp);
+            
+            int norg = ogOrgCount.get(og).size();
+            
+            for(int kt=0;kt<ocOg.size();kt++)
+                fw.write(tmp[kt]+" ");
+            fw.write("\n");
+            
+            fw.write(og+" "+(oc)+" "+calculateStandardDeviation(tmp)+"\n");
+            
+        }
+        fw.close();
+        
+         try{
+                fw = new FileWriter("usedTaxFilenonCH.txt"); 
+                
+                it=taxFNMapping.keySet().iterator();
+                 
+                 while(it.hasNext()){
+                     String fn=it.next();
+                     
+                     int f=taxFNMapping.get(fn);
+                     
+                     fw.write(fn+" "+f);
+                   
+                     fw.write("\n");
+                 }
+                
+                fw.close();
+              }
+               catch(IOException e){
+              e.printStackTrace();
+            }
+                 
+                 
+                     try{
+                fw = new FileWriter("usedTaxesnonCH.txt"); 
+                
+                Iterator<Integer> it1=usedTIDs.iterator();
+                 
+                 while(it1.hasNext()){
+                     Integer tid=it1.next();
+                     
+                     fw.write(tid+"");
+                   
+                     fw.write("\n");
+                 }
+                
+                fw.close();
+              }
+               catch(IOException e){
+              e.printStackTrace();
+            }             
+        
+         
+            System.out.println("Total number of organizms: "+allTax.size());
+            
+            HashSet<Integer> taxSP=new HashSet();
+            
+            for(int s:allTax){
+                taxSP.add(taxTranslation.get(s));
+                System.out.println("taxID: "+taxTranslation.get(s));
+            }
+            System.out.println("Number of species: "+taxSP.size());
+            
+            System.out.println("cbf size: "+cbf.COGbaselinefeaturesmap.keySet().size());
+            tt.createTrainHeader(output, cgmap, headerInput, isTrain);
+            tt.appendBaselineRowsToSet(output, cgmap, cbf, isTrain);
+            cbf.COGbaselinefeaturesmap.clear();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }   
+   }
+      
+
+   
 }

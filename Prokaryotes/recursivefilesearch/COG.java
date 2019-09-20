@@ -188,4 +188,81 @@ void createPid2GeneMapping(File input, GeneOGMapping pid2OG, HashMap<String, Has
        }  
     }
    }
+   
+   
+    void findCogsNoOperons(File input, int mode, GeneOGMapping geneOGMap){ //mode=0, COG mapping from files, mode==1, separate ->gene mapping, one gene mapped to multiple OGs
+        int lineNum=0;
+        ArrayList<Integer> strand  = new ArrayList<>();
+
+        BufferedReader reader;
+         try {
+      Path path =Paths.get(input.getAbsolutePath());
+      System.out.println("Path: "+input.getAbsolutePath());
+      reader = Files.newBufferedReader(path,ENCODING);
+      String line = null;
+      while ((line = reader.readLine()) != null) {
+          lineNum++;
+          
+          if(lineNum==1){
+              String[] gensize=line.split(" ");
+              String c=gensize[gensize.length-1];
+              System.out.println("String c COG: "+c);
+              String [] coord=c.split("\\.\\.");
+              System.out.println("coord size: "+coord.length);
+              minCoordinate=Integer.parseInt(coord[0]);
+              maxCoordinate=Integer.parseInt(coord[1]);
+          }
+          
+          if(lineNum>3){
+          String[] st=line.split("\t");
+          String[] coord=st[0].split("\\..");
+          int x=Integer.parseInt(coord[0]), y=Integer.parseInt(coord[1]);
+
+          String cogName="";
+         if(mode==0){
+          String pattern = "(^COG)(\\d+)(\\D+)";
+          if(st[7].contains(","))
+              st[7]=st[7].split(",")[0];
+          cogName=st[7].replaceAll(pattern, "$1$2");
+         }
+         else{
+             cogName=st[3];
+             if(st[1].equals("+"))
+                 strand.add(1);
+             else strand.add(0);
+         }
+          Triplet<Integer,Integer,String> t=new Triplet<Integer,Integer,String>(x,y,cogName);
+          cogs.add(t);
+          if(geneOGMap.geneOGsMap.containsKey(cogName))
+              ancogs.add(t);
+          }
+      }
+      reader.close();
+         }catch(IOException ioe)
+            {
+              System.err.println("IOException: " + ioe.getMessage());
+            }
+         
+         for(int i=0;i<cogs.size();i++){
+             int j=i+1;
+             if((j+1)>=cogs.size())
+                 break;
+            if(Math.abs(cogs.get(j).getValue0()-cogs.get(i).getValue1())<=50 && strand.get(i).equals(strand.get(j))){
+                 String genName = cogs.get(i).getValue2();
+                 genName+="REMOVE123";
+                 Triplet<Integer,Integer,String> t = cogs.get(i).setAt2(genName);
+                 cogs.set(i, t);
+                 if(!cogs.get(j).getValue2().contains("REMOVE123")){
+                    genName = cogs.get(j).getValue2();
+                    genName+="REMOVE123";
+                     t = cogs.get(j).setAt2(genName);
+                    cogs.set(j, t);
+                 }
+             }
+         }
+         
+    }
+    
+    
+   
 }
