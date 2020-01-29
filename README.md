@@ -9,10 +9,6 @@ Authors: Matej Mihelčić, Tomislav Šmuc and Fran Supek
 https://www.biorxiv.org/content/10.1101/582577v1,
 doi: https://doi.org/10.1101/582577
 
-## Publication
-
-Mihelčić, M., Šmuc, T. & Supek, F. Patterns of diverse gene functions in genomic neighborhoods predict gene function and phenotype. Sci Rep 9, 19537 (2019). https://doi.org/10.1038/s41598-019-55984-0
-
 This work was performed at:
 
 1) Ruđer Bošković Institute, Zagreb, Croatia
@@ -29,6 +25,10 @@ The main required data can be obtained from the following sources:
 3) Gene ontology (http://geneontology.org/)
 
 Other data sources are specified in the manuscript or can be obtained by request from the authors. 
+
+## Publication
+
+Mihelčić, M., Šmuc, T. & Supek, F. Patterns of diverse gene functions in genomic neighborhoods predict gene function and phenotype. Sci Rep 9, 19537 (2019). https://doi.org/10.1038/s41598-019-55984-0
 
 ## Contact information: 
 
